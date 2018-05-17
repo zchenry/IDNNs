@@ -1,11 +1,11 @@
 'Calculate and plot the gradients (the mean and std of the mini-batch gradients) of the trained network'
 import matplotlib
-matplotlib.use("TkAgg")
+#matplotlib.use("TkAgg")
 import numpy as np
 import idnns.plots.utils as plt_ut
 import matplotlib.pyplot as plt
-import tkinter as tk
-from tkinter import filedialog
+#import tkinter as tk
+#from tkinter import filedialog
 from numpy import linalg as LA
 import os
 import sys
@@ -31,7 +31,7 @@ def plot_gradients(name_s=None, data_array=None, figures_dir=''):
         num_of_layers = int(num_of_layers / 2)
     #The indxes where we sampled the network
     print (np.squeeze(data_array['var_grad_val'])[0,0].shape)
-    epochsInds = (data_array['params']['epochsInds']).astype(np.int)
+    snapepochs = (data_array['params']['snapepochs']).astype(np.int)
     #The norms of the layers
     #l2_norm = calc_weights_norms(data_array['ws_all'])
     f_log, axes_log, f_norms, axes_norms, f_snr,  axes_snr,axes_gaus, f_gaus = create_figs()
@@ -107,10 +107,10 @@ def plot_gradients(name_s=None, data_array=None, figures_dir=''):
         y_mean = np.sum(means_all, axis=0)
         snr =  y_mean**2 / y_var
         #Plot the gradients and the means
-        c_p1, = axes_log.plot(epochsInds[:], np.sqrt(y_var),markersize = 4, linewidth = 4,color = colors[layer], linestyle=':', markeredgewidth=0.2, dashes = [4,4])
-        c_p0,= axes_log.plot(epochsInds[:], y_mean,  linewidth = 2,color = colors[layer])
-        c_p3,= axes_snr.plot(epochsInds[:],snr,  linewidth = 2,color = colors[layer])
-        c_p4,= axes_gaus.plot(epochsInds[:],np.log(1+snr),  linewidth = 2,color = colors[layer])
+        c_p1, = axes_log.plot(snapepochs[:], np.sqrt(y_var),markersize = 4, linewidth = 4,color = colors[layer], linestyle=':', markeredgewidth=0.2, dashes = [4,4])
+        c_p0,= axes_log.plot(snapepochs[:], y_mean,  linewidth = 2,color = colors[layer])
+        c_p3,= axes_snr.plot(snapepochs[:],snr,  linewidth = 2,color = colors[layer])
+        c_p4,= axes_gaus.plot(snapepochs[:],np.log(1+snr),  linewidth = 2,color = colors[layer])
         #For the legend
         p_0.append(c_p0), p_1.append(c_p1),sum_y.append(y_mean) , p_3.append(c_p3), p_4.append(c_p4)
     plt_ut.adjust_axes(axes_log, axes_norms, p_0, p_1, f_log, f_norms, axes_snr, f_snr, p_3, axes_gaus, f_gaus, p_4,
@@ -118,13 +118,13 @@ def plot_gradients(name_s=None, data_array=None, figures_dir=''):
     plt.show()
 
 
-def calc_mean_var_loss(epochsInds,loss_train):
+def calc_mean_var_loss(snapepochs,loss_train):
     #Loss train is in dimension # epochs X #batchs
     num_of_epochs = loss_train.shape[0]
     #Average over the batchs
     loss_train_mean = np.mean(loss_train,1)
     #The diff divided by the sampled indexes
-    d_mean_loss_to_dt = np.sqrt(np.abs(np.diff(loss_train_mean) / np.diff(epochsInds[:])))
+    d_mean_loss_to_dt = np.sqrt(np.abs(np.diff(loss_train_mean) / np.diff(snapepochs[:])))
     var_loss = []
     #Go over the epochs
     for epoch_index in range(num_of_epochs):
@@ -143,12 +143,12 @@ def calc_mean_var_loss(epochsInds,loss_train):
     return np.array(var_loss), d_mean_loss_to_dt
 
 def plot_loss_figures(data_array, fig_size=(14, 10), xlim = None, y_lim = None):
-    epochsInds = (data_array['params']['epochsInds']).astype(np.int)
-    dif_var_loss, diff_mean_loss = calc_mean_var_loss(epochsInds, np.squeeze(data_array['loss_train']))
+    snapepochs = (data_array['params']['snapepochs']).astype(np.int)
+    dif_var_loss, diff_mean_loss = calc_mean_var_loss(snapepochs, np.squeeze(data_array['loss_train']))
     f_log1, (axes_log1) = plt.subplots(1, 1, figsize=fig_size)
     axes_log1.set_title('The mean and the varince( between the batchs) of the derivative of the train error')
-    axes_log1.plot(epochsInds[1:], np.array(diff_mean_loss), color='green', label = 'Mean of the derivative of the error')
-    axes_log1.plot(epochsInds[:], (dif_var_loss), color='blue', label='Variance of the derivative of the error' )
+    axes_log1.plot(snapepochs[1:], np.array(diff_mean_loss), color='green', label = 'Mean of the derivative of the error')
+    axes_log1.plot(snapepochs[:], (dif_var_loss), color='blue', label='Variance of the derivative of the error' )
     axes_log1.set_xscale('log')
     axes_log1.set_yscale('log')
     axes_log1.set_xlabel('#Epochs')
@@ -157,11 +157,11 @@ def plot_loss_figures(data_array, fig_size=(14, 10), xlim = None, y_lim = None):
     f_log1, (axes_log1) = plt.subplots(1, 1, figsize=fig_size)
     title = r'The SNR of the error derivatives'
 
-    p_5, =axes_log1.plot(epochsInds[1:], np.array(diff_mean_loss)/ np.sqrt(dif_var_loss[1:]), linewidth = 3, color='green',
+    p_5, =axes_log1.plot(snapepochs[1:], np.array(diff_mean_loss)/ np.sqrt(dif_var_loss[1:]), linewidth = 3, color='green',
                   )
     plt_ut.update_axes(axes_log1, f_log1, '#Epochs', 'SNR',[0, 7000], [0.001, 1], title, 'log', 'log',
                        [1, 10, 100, 1000, 7000], [0.001, 0.01, 0.1, 1])
-    #axes_log1.plot(epochsInds[:], (dif_var_loss), color='blue', label='Variance of the derivative of the error')
+    #axes_log1.plot(snapepochs[:], (dif_var_loss), color='blue', label='Variance of the derivative of the error')
     axes_log1.legend([r'$\frac{|d Error|}{STD\left(Error)\right)}$'], loc= 'best',fontsize = 21)
 
 def create_figs(fig_size = (14, 10)):
@@ -192,15 +192,7 @@ def calc_weights_norms(ws, num_of_layer = 6):
     layer_l2_norm = []
     for i in range(num_of_layer):
         flatted_list = [1]
-        """
-        if type(ws_in[epoch_number][layer_index]) is list:
-            flatted_list = [item for sublist in ws_in[epoch_number][layer_index] for item in sublist]
-        else:
-            flatted_list = ws_in[epoch_number][layer_index]
-        """
         layer_l2_norm.append(LA.norm(np.array(flatted_list)))
-    # plot the norms
-    #axes_norms.plot(epochsInds[:], np.array(layer_l2_norm), linewidth=2, color=colors[layer_index])
     return layer_l2_norm
 
 def extract_array(data, name):
@@ -216,8 +208,9 @@ if __name__ == '__main__':
     directory = './figures/'
     if not os.path.exists(directory):
         os.makedirs(directory)
-    root = tk.Tk()
-    root.withdraw()
-    file_path = filedialog.askopenfilename()
-    str_names = [[('/').join(file_path.split('/')[:-1]) + '/']]
+    #root = tk.Tk()
+    #root.withdraw()
+    #file_path = filedialog.askopenfilename()
+    #str_names = [[('/').join(file_path.split('/')[:-1]) + '/']]
+    str_names = [['job']]
     plot_gradients(str_names, figures_dir=directory)

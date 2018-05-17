@@ -126,18 +126,9 @@ def adjust_axes(axes_log, axes_norms, p_0, p_1, f_log, f_norms, axes_snr=None, f
 
 		update_axes(axes_gaus, f_gau, '# Epochs', 'log(SNR+1)', [0, 7000], [0.0001, 10], title, 'log', 'log',
 		            [1, 10, 100, 1000, 7000], [0.0001, 0.001, 0.01, 0.1, 1, 10], p_4=p_4)
-	# axes_log.plot(epochsInds[1:], np.abs(np.diff(np.squeeze(data_array['loss_train']))) / np.diff(epochsInds[:]), color='black', linewidth = 3)
 
-	# axes_log.plot(epochsInds[0:], np.sum(np.array(sum_y), axis=0), color='c', linewidth = 3)
-	# axes_log.plot(epochsInds[1:], diff_mean_loss, color='red', linewidth = 3)
-	# f_log1, (axes_log1) = plt.subplots(1, 1, figsize=fig_size)
-
-	# axes_log1.plot(epochsInds[1:], np.sum(np.array(sum_y), axis=0)[1:] / diff_mean_loss, color='c', linewidth=3)
-
-	# axes_log.set_xscale('log')
-	f_log.savefig(directory_name + 'log_gradient.svg', dpi=200, format='svg')
-	f_norms.savefig(directory_name + 'norms.jpg', dpi=200, format='jpg')
-
+	f_log.savefig(directory_name + 'log_gradient.png', dpi=200, format='png')
+	f_norms.savefig(directory_name + 'norms.png', dpi=200, format='png')
 
 def adjustAxes(axes, axis_font=20, title_str='', x_ticks=[], y_ticks=[], x_lim=None, y_lim=None,
                set_xlabel=True, set_ylabel=True, x_label='', y_label='', set_xlim=True, set_ylim=True, set_ticks=True,
@@ -170,16 +161,16 @@ def adjustAxes(axes, axis_font=20, title_str='', x_ticks=[], y_ticks=[], x_lim=N
 		axes.set_ylabel(y_label, fontsize=label_size)
 
 
-def create_color_bar(f, cmap, colorbar_axis, bar_font, epochsInds, title):
+def create_color_bar(f, cmap, colorbar_axis, bar_font, snapepochs, title):
 	sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(vmin=0, vmax=1))
 	sm._A = []
 	cbar_ax = f.add_axes(colorbar_axis)
 	cbar = f.colorbar(sm, ticks=[], cax=cbar_ax)
 	cbar.ax.tick_params(labelsize=bar_font)
 	cbar.set_label(title, size=bar_font)
-	cbar.ax.text(0.5, -0.01, epochsInds[0], transform=cbar.ax.transAxes,
+	cbar.ax.text(0.5, -0.01, snapepochs[0], transform=cbar.ax.transAxes,
 	             va='top', ha='center', size=bar_font)
-	cbar.ax.text(0.5, 1.0, str(epochsInds[-1]), transform=cbar.ax.transAxes,
+	cbar.ax.text(0.5, 1.0, str(snapepochs[-1]), transform=cbar.ax.transAxes,
 	             va='bottom', ha='center', size=bar_font)
 
 
@@ -198,9 +189,9 @@ def get_data(name):
 		data = np.array([data1[:, :, :, :, :, 0], data1[:, :, :, :, :, 1]])
 		# Convert log e to log2
 		normalization_factor = 1 / np.log2(2.718281)
-		epochsInds = np.arange(0, data.shape[4])
+		snapepochs = np.arange(0, data.shape[4])
 		d2 = {}
-		d2['epochsInds'] = epochsInds
+		d2['snapepochs'] = snapepochs
 		d2['information'] = data / normalization_factor
 	return d2
 
@@ -236,8 +227,8 @@ def get_data(name):
 		data = np.array([data1[:, :, :, :, :, 0], data1[:, :, :, :, :, 1]])
 		# Convert log e to log2
 		normalization_factor = 1 / np.log2(2.718281)
-		epochsInds = np.arange(0, data.shape[4])
+		snapepochs = np.arange(0, data.shape[4])
 		d2 = {}
-		d2['epochsInds'] = epochsInds
+		d2['snapepochs'] = snapepochs
 		d2['information'] = data / normalization_factor
 	return d2

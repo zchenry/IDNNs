@@ -6,3 +6,4 @@ idnns/__pycache__/
 .idea/
 /figure.jpg
 /jobs/
+*.DS_Store

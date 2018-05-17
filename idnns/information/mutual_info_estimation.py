@@ -26,11 +26,7 @@ def optimiaze_func(s, diff_mat, d, N):
 
 def calc_all_sigams(data, sigmas):
     batchs = 128
-    num_of_bins = 8
-    # bins = np.linspace(-1, 1, num_of_bins).astype(np.float32)
-    # bins = stats.mstats.mquantiles(np.squeeze(data.reshape(1, -1)), np.linspace(0,1, num=num_of_bins))
-    # data = bins[np.digitize(np.squeeze(data.reshape(1, -1)), bins) - 1].reshape(len(data), -1)
-
+    nbins = 8
     batch_points = np.rint(np.arange(0, data.shape[0] + 1, batchs)).astype(dtype=np.int32)
     I_XT = []
     num_of_rand = min(800, data.shape[1])
@@ -73,16 +69,16 @@ def estimate_IY_by_network(data, labels, from_layer=0):
         acc_all = []
         g1 = tf.Graph()  ## This is one graph
         with g1.as_default():
-            # For each epoch and for each layer we calculate the best decoder - we train a 2 lyaer network
-            cov_net = 4
-            model = mo.Model(input_size, [400, 100, 50], labels.shape[1], 0.0001, '', cov_net=cov_net,
+            # For each epoch and for each layer we calculate the best decoder
+            # we train a 2 lyaer network
+            model = mo.Model(input_size, [400, 100, 50], labels.shape[1], 0.0001, '', cov=4,
                              from_layer=from_layer)
             if from_layer < 5:
                 optimizer = model.optimize
             init = tf.global_variables_initializer()
             num_of_ephocs = 50
-            batch_size = 51
-            batch_points = np.rint(np.arange(0, data.shape[0] + 1, batch_size)).astype(dtype=np.int32)
+            batchsize = 51
+            batch_points = np.rint(np.arange(0, data.shape[0] + 1, batchsize)).astype(dtype=np.int32)
             if data.shape[0] not in batch_points:
                 batch_points = np.append(batch_points, [data.shape[0]])
         with tf.Session(graph=g1) as sess:
@@ -93,19 +89,19 @@ def estimate_IY_by_network(data, labels, from_layer=0):
                         batch_xs = data[batch_points[i]:batch_points[i + 1], :]
                         batch_ys = labels[batch_points[i]:batch_points[i + 1], :]
                         feed_dict = {model.x: batch_xs, model.labels: batch_ys}
-                        if cov_net == 1:
+                        if cov == 1:
                             feed_dict[model.drouput] = 0.5
                         optimizer.run(feed_dict)
             p_y_given_t_i = []
-            batch_size = 256
-            batch_points = np.rint(np.arange(0, data.shape[0] + 1, batch_size)).astype(dtype=np.int32)
+            batchsize = 256
+            batch_points = np.rint(np.arange(0, data.shape[0] + 1, batchsize)).astype(dtype=np.int32)
             if data.shape[0] not in batch_points:
                 batch_points = np.append(batch_points, [data.shape[0]])
             for i in range(0, len(batch_points) - 1):
                 batch_xs = data[batch_points[i]:batch_points[i + 1], :]
                 batch_ys = labels[batch_points[i]:batch_points[i + 1], :]
                 feed_dict = {model.x: batch_xs, model.labels: batch_ys}
-                if cov_net == 1:
+                if cov == 1:
                     feed_dict[model.drouput] = 1
                 p_y_given_t_i_local, acc = sess.run([model.prediction, model.accuracy],
                                                     feed_dict=feed_dict)
@@ -129,19 +125,18 @@ def estimate_IY_by_network(data, labels, from_layer=0):
     return I_TY, acc
 
 
-def calc_varitional_information(data, labels, model_path, layer_numer, num_of_layers, epoch_index, input_size,
-                                layerSize, sigma, pys, ks,
+def calc_varitional_information(data, labels, model_path, layer_numer,
+                                num_of_layers, epoch_index, input_size,
+                                layers, sigma, pys, ks,
                                 search_sigma=False, estimate_y_by_network=False):
     """Calculate estimation of the information using vartional IB"""
     # Assumpations
     estimate_y_by_network = True
-    # search_sigma = False
     data_x = data.reshape(data.shape[0], -1)
 
     if search_sigma:
         sigmas = np.linspace(0.2, 10, 20)
         sigmas = [0.2]
-
     else:
         sigmas = [sigma]
     if False:
@@ -158,21 +153,14 @@ def calc_varitional_information(data, labels, model_path, layer_numer, num_of_la
                                                                               np.array(I_XT).flatten(), I_TY, acc))
     sys.stdout.flush()
 
-    # I_est = mutual_inform[ation((data, labels[:, 0][:, None]), PYs, k=ks)
-    # I_est,I_XT = 0, 0
     params = {}
-    # params['DKL_YgX_YgT'] = DKL_YgX_YgT
-    # params['pts'] = p_ts
-    # params['H_Xgt'] = H_Xgt
     params['local_IXT'] = I_XT
     params['local_ITY'] = I_TY
     return params
 
 def estimate_Information(Xs, Ys, Ts):
-	"""Estimation of the MI from missing data based on k-means clustring"""
-	estimate_IXT = ee.mi(Xs, Ts)
-	estimate_IYT = ee.mi(Ys, Ts)
-	# estimate_IXT1 = ee.mi(Xs, Ts)
-	# estimate_IYT1 = ee.mi(Ys, Ts)
-	return estimate_IXT, estimate_IYT
+    """Estimation of the MI from missing data based on k-means clustring"""
+    estimate_IXT = ee.mi(Xs, Ts)
+    estimate_IYT = ee.mi(Ys, Ts)
+    return estimate_IXT, estimate_IYT
 
