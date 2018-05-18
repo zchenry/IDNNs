@@ -370,8 +370,8 @@ def plot_figures(str_names, mode, save_name):
             name_s = str_names[i][j]
             data_array = utils.get_data(name_s)
             data  = np.squeeze(np.array(data_array['information']))
-            I_XT_array = np.array(extract_array(data, 'local_IXT'))
-            I_TY_array = np.array(extract_array(data, 'local_ITY'))
+            I_XT_array = np.array(extract_array(data, 'IXT'))
+            I_TY_array = np.array(extract_array(data, 'ITY'))
             snapepochs = data_array['params']['snapepochs']
 
             if mode == 3:
@@ -516,10 +516,10 @@ def plot_hist(str_name, save_name='dist'):
 def plot_alphas(str_name, save_name='dist'):
     data_array = utils.get_data(str_name)
     params = np.squeeze(np.array(data_array['information']))
-    I_XT_array = np.squeeze(np.array(extract_array(params, 'local_IXT')))
+    I_XT_array = np.squeeze(np.array(extract_array(params, 'IXT')))
     I_XT_array_var = np.squeeze(np.array(extract_array(params, 'IXT_vartional')))
     I_TY_array_var = np.squeeze(np.array(extract_array(params, 'ITY_vartional')))
-    I_TY_array = np.squeeze(np.array(extract_array(params, 'local_ITY')))
+    I_TY_array = np.squeeze(np.array(extract_array(params, 'ITY')))
     sigmas = np.linspace(0, 0.3, 20)
 
     for i in range(0,20):

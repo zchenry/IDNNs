@@ -23,20 +23,23 @@ def calc_information_for_layer(data, bins, unique_inverse_x, unique_inverse_y, p
         np.unique(b2, return_index=False, return_inverse=True, return_counts=True)
     p_ts = unique_counts / float(sum(unique_counts))
     PXs, PYs = np.asarray(pxs).T, np.asarray(pys1).T
-    local_IXT, local_ITY = calc_information_from_mat(PXs, PYs, p_ts, digitized, unique_inverse_x, unique_inverse_y,
+    IXT, ITY = calc_information_from_mat(PXs, PYs, p_ts, digitized, unique_inverse_x, unique_inverse_y,
                                                      unique_array)
-    return local_IXT, local_ITY
+    return IXT, ITY
 
 
-def calc_information_sampling(data, bins, pys1, pxs, label, b, b1, len_unique_a, p_YgX, unique_inverse_x,
+def calc_information_sampling(data, bins, pys1, pxs, label, b, b1,
+                              len_unique_a, p_YgX, unique_inverse_x,
                               unique_inverse_y, calc_DKL=False):
     bins = bins.astype(np.float32)
     nbins = bins.shape[0]
-    digitized = bins[np.digitize(np.squeeze(data.reshape(1, -1)), bins) - 1].reshape(len(data), -1)
+    digitized = bins[np.digitize(
+        np.squeeze(data.reshape(1, -1)), bins) - 1].reshape(len(data), -1)
     b2 = np.ascontiguousarray(digitized).view(
         np.dtype((np.void, digitized.dtype.itemsize * digitized.shape[1])))
     unique_array, unique_inverse_t, unique_counts = \
-        np.unique(b2, return_index=False, return_inverse=True, return_counts=True)
+        np.unique(b2, return_index=False,
+                  return_inverse=True, return_counts=True)
     p_ts = unique_counts / float(sum(unique_counts))
     PXs, PYs = np.asarray(pxs).T, np.asarray(pys1).T
     if calc_DKL:
@@ -46,29 +49,33 @@ def calc_information_sampling(data, bins, pys1, pxs, label, b, b1, len_unique_a,
         p_XgT = np.vstack(pxy_given_T[:, 0])
         p_YgT = pxy_given_T[:, 1]
         p_YgT = np.vstack(p_YgT).T
-        DKL_YgX_YgT = np.sum([inf_ut.KL(c_p_YgX, p_YgT.T) for c_p_YgX in p_YgX.T], axis=0)
+        DKL_YgX_YgT = np.sum(
+            [inf_ut.KL(c_p_YgX, p_YgT.T) for c_p_YgX in p_YgX.T], axis=0)
         H_Xgt = np.nansum(p_XgT * np.log2(p_XgT), axis=1)
-    local_IXT, local_ITY = calc_information_from_mat(PXs, PYs, p_ts, digitized, unique_inverse_x, unique_inverse_y,
-                                                     unique_array)
-    return local_IXT, local_ITY
+    IXT, ITY = calc_information_from_mat(PXs, PYs, p_ts, digitized,
+                                         unique_inverse_x, unique_inverse_y,
+                                         unique_array)
+    return IXT, ITY
 
-
-def calc_information_for_layer_with_other(data, bins, unique_inverse_x, unique_inverse_y, label,
-                                          b, b1, len_unique_a, pxs, p_YgX, pys1,
+def calc_information_for_layer_with_other(data, bins, unique_inverse_x,
+                                          unique_inverse_y, label, b, b1,
+                                          len_unique_a, pxs, p_YgX, pys1,
                                           percent_of_sampling=50):
-    local_IXT, local_ITY = calc_information_sampling(data, bins, pys1, pxs, label, b, b1,
-                                                     len_unique_a, p_YgX, unique_inverse_x,
-                                                     unique_inverse_y)
+    IXT, ITY = calc_information_sampling(data, bins, pys1, pxs, label, b, b1,
+                                         len_unique_a, p_YgX, unique_inverse_x,
+                                         unique_inverse_y)
     number_of_indexs = int(data.shape[1] * (1. / 100 * percent_of_sampling))
-    indexs_of_sampls = np.random.choice(data.shape[1], number_of_indexs, replace=False)
+    indexs_of_sampls = np.random.choice(data.shape[1], number_of_indexs,
+                                        replace=False)
     if percent_of_sampling != 100:
         sampled_data = data[:, indexs_of_sampls]
-        sampled_local_IXT, sampled_local_ITY = calc_information_sampling(
-            sampled_data, bins, pys1, pxs, label, b, b1, len_unique_a, p_YgX, unique_inverse_x, unique_inverse_y)
+        sampled_IXT, sampled_ITY = calc_information_sampling(
+            sampled_data, bins, pys1, pxs, label, b, b1,
+            len_unique_a, p_YgX, unique_inverse_x, unique_inverse_y)
 
     params = {}
-    params['local_IXT'] = local_IXT
-    params['local_ITY'] = local_ITY
+    params['IXT'] = IXT
+    params['ITY'] = ITY
     return params
 
 
@@ -99,16 +106,18 @@ def calc_by_sampling_neurons(ws_iter_index, snaps, label, sigma, bins, pxs):
         return params
 
 
-def calc_information_for_epoch(iter_index, ws_iter_index, bins, unique_inverse_x,
-                               unique_inverse_y, label, b, b1,
-                               len_unique_a, pys, pxs, py_x, pys1, model_path, input_size, layers,
-                               calc_vartional_information=False, calc_information_by_sampling=False,
-                               calc_full_and_vartional=False, calc_regular_information=True, snaps=100,
-                               sigma=0.5, ss=[], ks=[]):
+def calc_information_for_epoch(iter_index, ws_iter_index, bins,
+                               unique_inverse_x, unique_inverse_y, label, b,
+                               b1, len_unique_a, pys, pxs, py_x, pys1,
+                               model_path, input_size, layers,
+                               calc_vartional_information=False,
+                               calc_information_by_sampling=False,
+                               calc_full_and_vartional=False,
+                               calc_regular_information=True,
+                               snaps=100, sigma=0.5, ss=[], ks=[]):
     """Calculate the information for all the layers for specific epoch"""
     np.random.seed(None)
     if calc_full_and_vartional:
-        # Vartional information
         params_vartional = [
             calc_varitional_information(ws_iter_index[i], label, model_path, i, len(ws_iter_index) - 1, iter_index,
                                         input_size, layers, ss[i], pys, ks[i], search_sigma=False) for i in
@@ -125,8 +134,8 @@ def calc_information_for_epoch(iter_index, ws_iter_index, bins, unique_inverse_x
         for i in range(len(ws_iter_index)):
             current_params = params_original[i]
             current_params_vartional = params_vartional[i]
-            current_params['IXT_vartional'] = current_params_vartional['local_IXT']
-            current_params['ITY_vartional'] = current_params_vartional['local_ITY']
+            current_params['IXT_vartional'] = current_params_vartional['IXT']
+            current_params['ITY_vartional'] = current_params_vartional['ITY']
             params.append(current_params)
     elif calc_vartional_information:
         params = [
@@ -173,25 +182,27 @@ def extract_probs(label, x):
     return pys, pys1, p_y_given_x, b1, b, unique_a, unique_inverse_x, unique_inverse_y, pxs
 
 
-def get_information(ws, x, label, nbins,  model, layers, calc_parallel=True,
-                    py_hats=0):
-    """Calculate the information for the network for all the epochs and all the layers"""
+def get_information(ws, x, label, nbins, model=None, layers=[], parallel=True):
+    """Calculate MI for the network for all the epochs and all the layers"""
     print('Start calculating the mutual information...')
     bins = np.linspace(-1, 1, nbins)
     label = np.array(label).astype(np.float)
     pys, pys1, p_y_given_x, b1, b, unique_a, \
             unique_inverse_x, unique_inverse_y, pxs = extract_probs(label, x)
-    if calc_parallel:
+    model_path = '' if model == None else model.save_file
+    if parallel:
         params = np.array(Parallel(n_jobs=NUM_CORES
                                    )(delayed(calc_information_for_epoch)
-                                     (i, ws[i], bins, unique_inverse_x, unique_inverse_y,
-                                      label, b, b1, len(unique_a), pys,
-                                      pxs, p_y_given_x, pys1, model.save_file, x.shape[1], layers)
+                                     (i, ws[i], bins, unique_inverse_x,
+                                      unique_inverse_y, label, b, b1,
+                                      len(unique_a), pys, pxs, p_y_given_x,
+                                      pys1, model_path, x.shape[1], layers)
                                      for i in range(len(ws))))
     else:
         params = np.array([calc_information_for_epoch
                            (i, ws[i], bins, unique_inverse_x, unique_inverse_y,
-                            label, b, b1, len(unique_a), pys,
-                            pxs, p_y_given_x, pys1, model.save_file, x.shape[1], layers)
+                            label, b, b1, len(unique_a), pys, pxs, p_y_given_x,
+                            pys1, model_path, x.shape[1], layers)
                            for i in range(len(ws))])
+
     return params

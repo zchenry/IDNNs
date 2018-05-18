@@ -16,11 +16,11 @@ def get_default_parser(snaps=None):
     parser.add_argument('--lr', default=0.1, type=float)
     parser.add_argument('--batchsize', default=512, type=int)
     parser.add_argument('--repeats', default=1, type=int)
-    parser.add_argument('--epochs', default=500, type=int)
+    parser.add_argument('--epochs', default=10, type=int)
     parser.add_argument('--layers', nargs='+', type=int, default=[[5, 3]])
     parser.add_argument('--name', default='net', type=str)
     parser.add_argument('--dataset', default='var_u', type=str)
-    parser.add_argument('--snaps', default=50, type=int)
+    parser.add_argument('--snaps', default=2, type=int)
     parser.add_argument('--nbins', default=30, type=int)
     parser.add_argument('--act', default=0, type=int) # 0: tanh, 1: relu
     parser.add_argument('--cov', default=0, type=int)
@@ -141,20 +141,7 @@ class informationNetwork():
         self.is_trained = True
 
     def print_information(self):
-        for val in self.params: print('{}: {}'.format(val, self.params[val]))
-
-    def calc_information(self):
-        if self.is_trained:
-            self.information = np.array(
-                [inn.get_information(self.ws[k][j][i], self.data_sets.data,
-                                     self.data_sets.labels,
-                                     self.args.nbins,
-                                     self.snap_epochs)
-                 for i in range(len(self.percents))
-                 for j in range(len(self.layers))
-                 for k in range(self.args.repeats)])
-        else:
-            print('Cannot calculate the infomration of the networks !!!')
+        for val in self.params: print('{:>10s}: {}'.format(val, self.params[val]))
 
     def plot_network(self):
         str_names = [[self.dir_saved]]

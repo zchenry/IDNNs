@@ -153,8 +153,8 @@ def calc_varitional_information(data, labels, model_path, layer_numer,
     sys.stdout.flush()
 
     params = {}
-    params['local_IXT'] = I_XT
-    params['local_ITY'] = I_TY
+    params['IXT'] = I_XT
+    params['ITY'] = I_TY
     return params
 
 def estimate_Information(Xs, Ys, Ts):
