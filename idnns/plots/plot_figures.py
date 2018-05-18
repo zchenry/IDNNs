@@ -74,7 +74,7 @@ def plot_all_epochs(gen_data, I_XT_array, I_TY_array, axes, snapepochs, f,
 def plot_by_training_samples(I_XT_array, I_TY_array, axes, snapepochs, f,
                              index_i, index_j, size_ind, font_size, y_ticks,
                              x_ticks, colorbar_axis, title_str, axis_font,
-                             bar_font, save_name, samples_labels):
+                             bar_font, save_name):
     """Print the final epoch of all the diffrenet training samples size """
     max_index = size_ind if size_ind!=-1 else I_XT_array.shape[2]-1
     cmap = plt.get_cmap('gnuplot')
@@ -389,7 +389,7 @@ def plot_figures(str_names, mode, save_name):
                                 yticks, xticks, colorbar_axis,
                                 title_strs[i][j], axis_font,
                                 bar_font, save_name)
-    plt.png('{}{}.png'.format(save_name, mode))
+    plt.savefig('{}{}.png'.format(save_name, mode))
 
 def plot_norms(axes, snapepochs, norms1, norms2):
     """Plot the norm l1 and l2 of the given name"""

@@ -9,11 +9,10 @@ import tensorflow as tf
 import idnns.information.information_utilities as inf_ut
 from idnns.networks import model as mo
 from idnns.information.mutual_info_estimation import calc_varitional_information
-warnings.filterwarnings("ignore")
+warnings.filterwarnings('ignore')
 from joblib import Parallel, delayed
 NUM_CORES = multiprocessing.cpu_count()
 from idnns.information.mutual_information_calculation import *
-
 
 def calc_information_for_layer(data, bins, unique_inverse_x, unique_inverse_y, pxs, pys1):
     bins = bins.astype(np.float32)

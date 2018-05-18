@@ -15,19 +15,18 @@ def printoptions(*args, **kwargs):
     finally:
         np.set_printoptions(**original)
 
-
 def optimiaze_func(s, diff_mat, d, N):
-    diff_mat1 = (1. / (np.sqrt(2. * np.pi) * (s ** 2) ** (d / 2.))) * np.exp(-diff_mat / (2. * s ** 2))
+    diff_mat1 = (1. / (np.sqrt(2. * np.pi) * (s ** 2) ** (d / 2.))) * np.exp(
+        -diff_mat / (2. * s ** 2))
     np.fill_diagonal(diff_mat1, 0)
     diff_mat2 = (1. / (N - 1)) * np.sum(diff_mat1, axis=0)
     diff_mat3 = np.sum(np.log2(diff_mat2), axis=0)
     return -diff_mat3
 
-
-def calc_all_sigams(data, sigmas):
+def calc_all_sigmas(data, sigmas):
     batchs = 128
     nbins = 8
-    batch_points = np.rint(np.arange(0, data.shape[0] + 1, batchs)).astype(dtype=np.int32)
+    batch_points = np.arange(0, data.shape[0] + 1, batchs).astype(np.int32)
     I_XT = []
     num_of_rand = min(800, data.shape[1])
     for sigma in sigmas:
@@ -39,23 +38,25 @@ def calc_all_sigams(data, sigmas):
             new_data = new_data[:, :]
             N = new_data.shape[0]
             d = new_data.shape[1]
-            diff_mat = np.linalg.norm(((new_data[:, np.newaxis, :] - new_data)), axis=2)
+            diff_mat = np.linalg.norm(
+                ((new_data[:, np.newaxis, :] - new_data)), axis=2)
             # print diff_mat.shape, new_data.shape
             s0 = 0.2
-            # DOTO -add leaveoneout validation
-            res = minimize(optimiaze_func, s0, args=(diff_mat, d, N), method='nelder-mead',
-                           options={'xtol': 1e-8, 'disp': False, 'maxiter': 6})
+            # TODO: add leaveoneout validation
+            res = minimize(optimiaze_func, s0, args=(diff_mat, d, N),
+                           method='nelder-mead',
+                           options={ 'xtol': 1e-8, 'disp': False,
+                                     'maxiter': 6 })
             eta = res.x
             diff_mat0 = - 0.5 * (diff_mat / (sigma ** 2 + eta ** 2))
             diff_mat1 = np.sum(np.exp(diff_mat0), axis=0)
             diff_mat2 = -(1.0 / N) * np.sum(np.log2((1.0 / N) * diff_mat1))
-            I_XT_temp += diff_mat2 - d * np.log2((sigma ** 2) / (eta ** 2 + sigma ** 2))
-            # print diff_mat2 - d*np.log2((sigma**2)/(eta**2+sigma**2))
+            I_XT_temp += diff_mat2 - d * np.log2(
+                (sigma ** 2) / (eta ** 2 + sigma ** 2))
         I_XT_temp /= len(batch_points)
         I_XT.append(I_XT_temp)
     sys.stdout.flush()
     return I_XT
-
 
 def estimate_IY_by_network(data, labels, from_layer=0):
     if len(data.shape) > 2:
@@ -71,14 +72,14 @@ def estimate_IY_by_network(data, labels, from_layer=0):
         with g1.as_default():
             # For each epoch and for each layer we calculate the best decoder
             # we train a 2 lyaer network
-            model = mo.Model(input_size, [400, 100, 50], labels.shape[1], 0.0001, '', cov=4,
-                             from_layer=from_layer)
+            model = mo.Model(input_size, [400, 100, 50], labels.shape[1],
+                             0.0001, '', cov=4, from_layer=from_layer)
             if from_layer < 5:
                 optimizer = model.optimize
             init = tf.global_variables_initializer()
             num_of_ephocs = 50
             batchsize = 51
-            batch_points = np.rint(np.arange(0, data.shape[0] + 1, batchsize)).astype(dtype=np.int32)
+            batch_points = np.arange(0, data.shape[0] + 1, batchsize).astype(np.int32)
             if data.shape[0] not in batch_points:
                 batch_points = np.append(batch_points, [data.shape[0]])
         with tf.Session(graph=g1) as sess:
@@ -94,7 +95,7 @@ def estimate_IY_by_network(data, labels, from_layer=0):
                         optimizer.run(feed_dict)
             p_y_given_t_i = []
             batchsize = 256
-            batch_points = np.rint(np.arange(0, data.shape[0] + 1, batchsize)).astype(dtype=np.int32)
+            batch_points = np.arange(0, data.shape[0] + 1, batchsize).astype(np.int32)
             if data.shape[0] not in batch_points:
                 batch_points = np.append(batch_points, [data.shape[0]])
             for i in range(0, len(batch_points) - 1):
@@ -110,7 +111,6 @@ def estimate_IY_by_network(data, labels, from_layer=0):
                     p_y_given_t_i = np.array(p_y_given_t_i_local)
                 else:
                     p_y_given_t_i = np.concatenate((p_y_given_t_i, np.array(p_y_given_t_i_local)), axis=0)
-                    # print ("The accuracy of layer number - {}  - {}".format(from_layer, np.mean(acc_all)))
     max_indx = len(p_y_given_t_i)
     labels_cut = labels[:max_indx, :]
     true_label_index = np.argmax(labels_cut, 1)
@@ -124,11 +124,10 @@ def estimate_IY_by_network(data, labels, from_layer=0):
     sys.stdout.flush()
     return I_TY, acc
 
-
 def calc_varitional_information(data, labels, model_path, layer_numer,
                                 num_of_layers, epoch_index, input_size,
-                                layers, sigma, pys, ks,
-                                search_sigma=False, estimate_y_by_network=False):
+                                layers, sigma, pys, ks, search_sigma=False,
+                                estimate_y_by_network=False):
     """Calculate estimation of the information using vartional IB"""
     # Assumpations
     estimate_y_by_network = True
@@ -140,7 +139,7 @@ def calc_varitional_information(data, labels, model_path, layer_numer,
     else:
         sigmas = [sigma]
     if False:
-        I_XT = calc_all_sigams(data_x, sigmas)
+        I_XT = calc_all_sigmas(data_x, sigmas)
     else:
         I_XT = 0
     if estimate_y_by_network:
@@ -163,4 +162,3 @@ def estimate_Information(Xs, Ys, Ts):
     estimate_IXT = ee.mi(Xs, Ts)
     estimate_IYT = ee.mi(Ys, Ts)
     return estimate_IXT, estimate_IYT
-

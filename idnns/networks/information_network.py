@@ -16,11 +16,11 @@ def get_default_parser(snaps=None):
     parser.add_argument('--lr', default=0.1, type=float)
     parser.add_argument('--batchsize', default=512, type=int)
     parser.add_argument('--repeats', default=1, type=int)
-    parser.add_argument('--epochs', default=10, type=int)
-    parser.add_argument('--layers', nargs='+', type=int, default=[[10, 7]])
+    parser.add_argument('--epochs', default=500, type=int)
+    parser.add_argument('--layers', nargs='+', type=int, default=[[5, 3]])
     parser.add_argument('--name', default='net', type=str)
     parser.add_argument('--dataset', default='var_u', type=str)
-    parser.add_argument('--snaps', default=10, type=int)
+    parser.add_argument('--snaps', default=50, type=int)
     parser.add_argument('--nbins', default=30, type=int)
     parser.add_argument('--act', default=0, type=int) # 0: tanh, 1: relu
     parser.add_argument('--cov', default=0, type=int)
@@ -121,6 +121,7 @@ class informationNetwork():
                    for i in range(len(self.percents))
                    for j in range(len(self.layers))
                    for k in range(self.repeats)]
+
         # Extract all the measures
         for i in range(len(self.percents)):
             for j in range(len(self.layers)):
@@ -143,8 +144,7 @@ class informationNetwork():
         for val in self.params: print('{}: {}'.format(val, self.params[val]))
 
     def calc_information(self):
-        # if self.is_trained:
-        if False:
+        if self.is_trained:
             self.information = np.array(
                 [inn.get_information(self.ws[k][j][i], self.data_sets.data,
                                      self.data_sets.labels,
@@ -158,11 +158,7 @@ class informationNetwork():
 
     def plot_network(self):
         str_names = [[self.dir_saved]]
-        save_name = 'run'
+        save_name = 'jobs/run'
         plt_fig.plot_figures(str_names, 0, save_name)
         plt_fig.plot_figures(str_names, 2, save_name)
-        plt_fig.plot_figures(str_names, 3, save_name)
         plt_fig.plot_figures(str_names, 4, save_name)
-        plt_fig.plot_figures(str_names, 6, save_name)
-        plt_fig.plot_figures(str_names, 11, save_name)
-        plt_fig.plot_hist(self.dir_saved)
